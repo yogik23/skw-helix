@@ -38,7 +38,7 @@ async function stake(account) {
 
     await client.waitForTransaction({ transactionHash: result.hash });
 
-    spinner.succeed(chalk.hex('#3CB371')(` Stake berhasil!`));
+    spinner.succeed(chalk.hex('#3CB371')(` Stake ${jumlah} hstMOVE berhasil!`));
   } catch (error) {
     spinner.fail(" Gagal stake:", error);
   }
@@ -62,7 +62,7 @@ async function unstake(account) {
     });
 
     await client.waitForTransaction({ transactionHash: result.hash });
-    spinner.succeed(chalk.hex('#3CB371')(` Unstake berhasil!`));
+    spinner.succeed(chalk.hex('#3CB371')(` Unstake ${jumlah} hstMOVE berhasil!`));
   } catch (error) {
     spinner.fail(" Gagal unstake:", error);
   }
@@ -92,7 +92,7 @@ async function claimfaucet(account) {
 
       await client.waitForTransaction({ transactionHash: result.hash });
 
-      spinner.succeed(chalk.hex('#3CB371')(` Claim berhasil!`));
+      spinner.succeed(chalk.hex('#3CB371')(` Claim 100 hstMOVE berhasil!`));
 
       if (i < 2) {
         await delay(1000);
