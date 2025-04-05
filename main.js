@@ -104,7 +104,7 @@ async function claimfaucet(account) {
     } catch (error) {
       spinner.stop();
       if ((error.message || '').includes('EMINT_LIMIT_REACHED')) {
-        console.log(chalk.red('⛔ Mint limit reached'));
+        console.log(chalk.red('⛔ Mint Faucet limit reached'));
       } else {
         console.log(chalk.red('❌ Gagal claim faucet:', error.message));
       }
@@ -133,7 +133,7 @@ async function stake(account) {
 
     await client.waitForTransaction({ transactionHash: result.hash });
 
-    spinner.succeed(chalk.hex('#3CB371')(` Stake ${jumlah} hstMOVE berhasil!`));
+    spinner.succeed(chalk.hex('#3CB371')(` Stake ${hstBalance} hstMOVE berhasil!`));
   } catch (error) {
     spinner.fail(" Gagal stake:", error);
   }
