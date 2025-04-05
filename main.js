@@ -1,5 +1,5 @@
-require('dotenv').config();
 const chalk = require('chalk');
+const axios = require('axios');
 const cron = require('node-cron');
 const { Account, Ed25519PrivateKey, Hex } = require('@aptos-labs/ts-sdk');
 const { displayskw } = require('./skw/displayskw');
@@ -9,6 +9,7 @@ const {
   delay,
   getPrivateKeysFromFile,
   parseAmount,
+  randomjumlah,
   spinner,
 } = require('./skw/utils');
 
@@ -16,18 +17,112 @@ const {
 const CONTRACT_ADDRESS =
   '0xf7429cda18fc0dd78d0dc48b102158024f1dc3a511a2a65ea553b5970d65b028';
 
-const jumlah = "100"; // Ubah bebas
+const jumlah = randomjumlah().toString();
 const amount = parseAmount(jumlah);
+
+async function getbalance(account) {
+  const address = account.accountAddress.toString();
+  const endpoint = "https://indexer.testnet.movementnetwork.xyz/v1/graphql";
+
+  const query = `
+    query CoinsData($owner_address: String, $limit: Int, $offset: Int) {
+      current_fungible_asset_balances(
+        where: {owner_address: {_eq: $owner_address}}
+        limit: $limit
+        offset: $offset
+      ) {
+        amount
+        asset_type
+        metadata {
+          name
+          decimals
+          symbol
+          token_standard
+        }
+      }
+    }
+  `;
+
+  const variables = {
+    owner_address: address,
+    limit: 100,
+    offset: 0
+  };
+
+  try {
+    const response = await axios.post(endpoint, {
+      query,
+      variables
+    });
+
+    const balances = response.data.data.current_fungible_asset_balances;
+
+    const hstMove = balances.find(
+      (b) => b.metadata.symbol === 'hstMOVE'
+    );
+
+    if (!hstMove) {
+      console.log(" Tidak menemukan token hstMOVE");
+      return 0n;
+    }
+
+    const hstBalance = BigInt(hstMove.amount);
+    return hstBalance;
+  } catch (error) {
+    console.error("❌ Gagal mengambil saldo dari GraphQL:", error.message);
+    return 0n;
+  }
+}
+
+async function claimfaucet(account) {
+  while (true) {
+    try {
+      spinner.start(chalk.hex('#FF8C00')(` Claim Faucet 100 hstMOVE sedang diproses...`));
+
+      const txn = await client.transaction.build.simple({
+        sender: account.accountAddress.toString(),
+        data: {
+          function: `${CONTRACT_ADDRESS}::eigenfi_token_minter::mint_fa`,
+          typeArguments: [],
+          functionArguments: [
+            "0x9c9b084429eecf70c7c4f9b18980eb3cbb9c9a70fee7abfb59ca637005c5b430",
+            "10000000000"
+          ],
+        },
+      });
+
+      const result = await client.transaction.signAndSubmitTransaction({
+        signer: account,
+        transaction: txn,
+      });
+
+      await client.waitForTransaction({ transactionHash: result.hash });
+
+      spinner.succeed(chalk.hex('#3CB371')(` Claim 100 hstMOVE berhasil!`));
+      await delay(1000);
+
+    } catch (error) {
+      spinner.stop();
+      if ((error.message || '').includes('EMINT_LIMIT_REACHED')) {
+        console.log(chalk.red('⛔ Mint limit reached'));
+      } else {
+        console.log(chalk.red('❌ Gagal claim faucet:', error.message));
+      }
+      break;
+    }
+  }
+}
 
 async function stake(account) {
   try {
-    spinner.start(chalk.hex('#FF8C00')(` Proses unstake ${jumlah} hstMOVE sedang diproses...`));
+    const hstBalance = await getbalance(account);
+    spinner.start(chalk.hex('#FF8C00')(` Proses stake ${hstBalance} hstMOVE sedang diproses...`));
     const txn = await client.transaction.build.simple({
       sender: account.accountAddress.toString(),
       data: {
         function: `${CONTRACT_ADDRESS}::eigenfi_move_vault_hstmove::stake`,
         typeArguments: [],
-        functionArguments: [amount],
+        functionArguments: [hstBalance.toString()],
       },
     });
 
@@ -68,39 +163,28 @@ async function unstake(account) {
   }
 }
 
-async function claimfaucet(account) {
+async function compound(account) {
   try {
-    for (let i = 1; i <= 2; i++) {
-      spinner.start(chalk.hex('#FF8C00')(` Claim Faucet 100 hstMOVE sedang diproses...`));
+    spinner.start(chalk.hex('#FF8C00')(` Proses Stake Reward sedang diproses...`));
+    const txn = await client.transaction.build.simple({
+      sender: account.accountAddress.toString(),
+      data: {
+        function: `${CONTRACT_ADDRESS}::eigenfi_move_vault_hstmove::compound`,
+        typeArguments: [],
+        functionArguments: [],
+      },
+    });
 
-      const txn = await client.transaction.build.simple({
-        sender: account.accountAddress.toString(),
-        data: {
-          function: `${CONTRACT_ADDRESS}::eigenfi_token_minter::mint_fa`,
-          typeArguments: [],
-          functionArguments: [
-            "0x9c9b084429eecf70c7c4f9b18980eb3cbb9c9a70fee7abfb59ca637005c5b430",
-            "10000000000"
-          ],
-        },
-      });
+    const result = await client.transaction.signAndSubmitTransaction({
+      signer: account,
+      transaction: txn,
+    });
 
-      const result = await client.transaction.signAndSubmitTransaction({
-        signer: account,
-        transaction: txn,
-      });
+    await client.waitForTransaction({ transactionHash: result.hash });
 
-      await client.waitForTransaction({ transactionHash: result.hash });
-
-      spinner.succeed(chalk.hex('#3CB371')(` Claim 100 hstMOVE berhasil!`));
-
-      if (i < 2) {
-        await delay(1000);
-      }
-    }
-
+    spinner.succeed(chalk.hex('#3CB371')(` Stake Reward berhasil!`));
   } catch (error) {
-    spinner.fail(` Gagal claim: ${error.message}`);
+    spinner.fail(" Gagal stake:", error);
   }
 }
 
@@ -126,11 +210,12 @@ async function startBot() {
       const privateKey = new Ed25519PrivateKey(privateKeyBytes);
       const account = Account.fromPrivateKey({ privateKey });
 
-      console.log(chalk.hex('#BA55D3')("🔐 Account :", account.accountAddress.toString()));
+      console.log(chalk.hex('#00CED1')("🔐 Account :", account.accountAddress.toString()));
 
       await claimfaucet(account);
       await stake(account);
       await unstake(account);
+      await compound(account);
 
       console.log();
       await delay(3000);
@@ -155,4 +240,4 @@ async function main() {
     console.log(chalk.hex('#FF1493')('Jam 08:00 WIB Autobot Akan Run'));
 }
 
-main();
+startBot();
