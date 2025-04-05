@@ -14,11 +14,11 @@ function displayskw() {
   console.log(chalk.hex('#00CED1')(" ╔══════════════════════════════════════════════════════════════╗"));
   console.log(chalk.hex('#00CED1')(" ║ ≣  Fitur Autobot by SKW AIRDROP HUNTER                       ║"));
   console.log(chalk.hex('#00CED1')(" ║══════════════════════════════════════════════════════════════║"));
-  console.log(chalk.hex('#00CED1')(" ║ ➤   Auto claim Faucet hstMOVE                               ║"));
-  console.log(chalk.hex('#00CED1')(" ║ ➤   Auto Stake & Unstake                                    ║"));
-  console.log(chalk.hex('#00CED1')(" ║ ➤   Auto Claim atau stake rewaed                            ║"));
-  console.log(chalk.hex('#00CED1')(" ║ ➤   Multi Akun                                              ║"));
-  console.log(chalk.hex('#00CED1')(" ║ ➤   Sudah Pasti Elig                                        ║"));
+  console.log(chalk.hex('#00CED1')(" ║ ➤   Auto claim Faucet hstMOVE                                ║"));
+  console.log(chalk.hex('#00CED1')(" ║ ➤   Auto Stake & Unstake                                     ║"));
+  console.log(chalk.hex('#00CED1')(" ║ ➤   Auto Claim atau stake rewaed                             ║"));
+  console.log(chalk.hex('#00CED1')(" ║ ➤   Multi Akun                                               ║"));
+  console.log(chalk.hex('#00CED1')(" ║ ➤   Sudah Pasti Elig                                         ║"));
   console.log(chalk.hex('#00CED1')(" ╚══════════════════════════════════════════════════════════════╝"));
   console.log(chalk.hex('#00CED1')("   ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░"));
 }
