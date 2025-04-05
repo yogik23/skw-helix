@@ -38,11 +38,16 @@ function randomjumlah(min = 20, max = 100) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
+function convert(rawAmount, decimals = 8) {
+  return Number(rawAmount) / (10 ** decimals);
+}
+
 module.exports = {
   config,
   getPrivateKeysFromFile,
   parseAmount,
   randomjumlah,
+  convert,
   delay,
   client,
   spinner,
