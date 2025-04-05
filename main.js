@@ -2,6 +2,7 @@ require('dotenv').config();
 const chalk = require('chalk');
 const cron = require('node-cron');
 const { Account, Ed25519PrivateKey, Hex } = require('@aptos-labs/ts-sdk');
+const { displayskw } = require('./skw/displayskw');
 
 const {
   client,
@@ -105,6 +106,8 @@ async function claimfaucet(account) {
 
 async function startBot() {
   console.clear();
+  displayskw();
+  console.log();
 
   const privateKeys = getPrivateKeysFromFile();
 
