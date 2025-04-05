@@ -10,6 +10,7 @@ const {
   getPrivateKeysFromFile,
   parseAmount,
   randomjumlah,
+  convert,
   spinner,
 } = require('./skw/utils');
 
@@ -104,7 +105,7 @@ async function claimfaucet(account) {
     } catch (error) {
       spinner.stop();
       if ((error.message || '').includes('EMINT_LIMIT_REACHED')) {
-        console.log(chalk.red('⛔ Mint Faucet limit reached'));
+        console.log(chalk.red('⛔ Mint limit reached'));
       } else {
         console.log(chalk.red('❌ Gagal claim faucet:', error.message));
       }
@@ -116,7 +117,8 @@ async function claimfaucet(account) {
 async function stake(account) {
   try {
     const hstBalance = await getbalance(account);
-    spinner.start(chalk.hex('#FF8C00')(` Proses stake ${hstBalance} hstMOVE sedang diproses...`));
+    const hstMOVE = convert(hstBalance);
+    spinner.start(chalk.hex('#FF8C00')(` Proses stake ${hstMOVE} hstMOVE sedang diproses...`));
     const txn = await client.transaction.build.simple({
       sender: account.accountAddress.toString(),
       data: {
@@ -133,7 +135,7 @@ async function stake(account) {
 
     await client.waitForTransaction({ transactionHash: result.hash });
 
-    spinner.succeed(chalk.hex('#3CB371')(` Stake ${hstBalance} hstMOVE berhasil!`));
+    spinner.succeed(chalk.hex('#3CB371')(` Stake ${hstMOVE} hstMOVE berhasil!`));
   } catch (error) {
     spinner.fail(" Gagal stake:", error);
   }
