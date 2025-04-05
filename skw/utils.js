@@ -34,10 +34,15 @@ function parseAmount(amountStr, decimals = 8) {
   return `${whole}${fractionPadded}`.replace(/^0+/, "") || "0";
 }
 
+function randomjumlah(min = 20, max = 100) {
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
 module.exports = {
   config,
   getPrivateKeysFromFile,
   parseAmount,
+  randomjumlah,
   delay,
   client,
   spinner,
