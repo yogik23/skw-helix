@@ -242,4 +242,4 @@ async function main() {
     console.log(chalk.hex('#FF1493')('Jam 08:00 WIB Autobot Akan Run'));
 }
 
-startBot();
+main();
